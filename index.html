@@ -51,7 +51,7 @@ td:first-child{color:var(--mute);width:38%}
 
 <!-- 第二、三、五區：3D 模型 + 參數控制 + 點選展示 -->
 <section id="lab">
-  <h2>二、三、五　洋芋片 3D 模型、參數控制與點選展示</h2>
+  <h2>二、洋芋片 3D 模型、參數控制與點選展示</h2>
   <div class="grid">
     <div>
       <div id="view"><div class="hint">拖曳旋轉　滾輪／雙指縮放　點選洋芋片表面選取一點</div></div>
@@ -77,7 +77,7 @@ td:first-child{color:var(--mute);width:38%}
 
 <!-- 第四區：幾何資訊 -->
 <section id="info">
-  <h2>四、幾何資訊</h2>
+  <h2>三、幾何資訊</h2>
   <div class="grid">
     <div class="card">
       <h3>目前使用的參數曲面</h3>
@@ -103,7 +103,7 @@ td:first-child{color:var(--mute);width:38%}
 
 <!-- 第六區：幾何解釋 -->
 <section id="explain">
-  <h2>六、幾何解釋</h2>
+  <h2>四、幾何解釋</h2>
   <div class="cols">
     <div class="card"><h3>參數曲面</h3><p>曲面可以想成把一張平面的「參數紙」(u, v) 彎進三維空間：每個 (u, v) 對應空間中一個點 r(u,v)。本作業取 r(u,v) = (u, v, kx·u² − ky·v²)，也就是把 (u,v) 平面上的點抬高到 z 高度。kx 控制沿 x 方向向上彎的程度，ky 控制沿 y 方向向下彎的程度。</p></div>
     <div class="card"><h3>法向量</h3><p>在曲面上沿 u、v 方向各走一小步，得到兩個切向量 r_u 與 r_v。它們的外積 r_u × r_v 垂直於曲面，標準化後就是單位法向量 n。這裡 r_u = (1,0,2kx·u)，r_v = (0,1,−2ky·v)，所以 n = (−2kx·u, 2ky·v, 1)/√(1+4kx²u²+4ky²v²)。法向量表示曲面在該點「朝向哪裡」。</p></div>
