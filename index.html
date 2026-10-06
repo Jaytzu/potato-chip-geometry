@@ -4,1797 +4,252 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>洋芋片的曲面幾何</title>
-
 <style>
-:root{
-  --bg:#fbf8ef;
-  --ink:#2b2a26;
-  --mute:#6b675c;
-  --gold:#e0a82e;
-  --deep:#a86d0c;
-  --line:#e4dcc4;
-  --card:#fffdf6;
-  --blue:#3b6fb6;
-  --red:#c9402a;
-}
-
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--ink);
-  font:16px/1.75 "Noto Serif TC","Source Han Serif TC",Georgia,serif;
-}
-
-header,
-section{
-  max-width:1120px;
-  margin:0 auto;
-  padding:28px 20px;
-}
-
-header{
-  padding-top:48px;
-  border-bottom:3px solid var(--gold);
-}
-
-h1{
-  margin:0 0 6px;
-  font-size:2.1rem;
-  letter-spacing:.02em;
-}
-
-h2{
-  font-size:1.35rem;
-  margin:0 0 12px;
-  padding-left:12px;
-  border-left:5px solid var(--gold);
-}
-
-h3{
-  margin:0 0 4px;
-  font-size:1.05rem;
-  color:var(--deep);
-}
-
-.sub{
-  color:var(--mute);
-  margin:0;
-}
-
-.mono,
-.eq{
-  font-family:"Cambria Math","STIX Two Math",Menlo,Consolas,monospace;
-}
-
-.eq{
-  background:#fff7da;
-  border:1px solid var(--line);
-  border-radius:6px;
-  padding:8px 12px;
-  margin:8px 0;
-  font-size:.95rem;
-  overflow-x:auto;
-}
-
-.card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:8px;
-  padding:16px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);
-  gap:16px;
-  align-items:start;
-}
-
-#view{
-  position:relative;
-  height:520px;
-  border:1px solid var(--line);
-  border-radius:8px;
-  background:radial-gradient(
-    circle at 50% 40%,
-    #fffef8,
-    #f1e9d0
-  );
-  overflow:hidden;
-  touch-action:none;
-  cursor:grab;
-}
-
-#view canvas{
-  display:block;
-}
-
-.hint{
-  position:absolute;
-  left:10px;
-  bottom:8px;
-  font:12px/1.4 sans-serif;
-  color:var(--mute);
-  pointer-events:none;
-}
-
-.legend{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font:12px sans-serif;
-  color:var(--mute);
-  margin-top:8px;
-}
-
-.bar{
-  flex:1;
-  height:10px;
-  border-radius:5px;
-  background:linear-gradient(
-    90deg,
-    #3b6fb6,
-    #f2cf6a,
-    #c9402a
-  );
-}
-
-label{
-  display:block;
-  font:14px/1.4 sans-serif;
-  margin-top:10px;
-}
-
-label b{
-  float:right;
-  font-weight:600;
-  color:var(--deep);
-}
-
-input[type=range]{
-  width:100%;
-  accent-color:var(--gold);
-}
-
-select{
-  width:100%;
-  padding:5px;
-  margin-top:4px;
-}
-
-.chk{
-  display:inline-block;
-  margin-right:14px;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  font:14px/1.5 sans-serif;
-}
-
-td{
-  padding:4px 2px;
-  border-bottom:1px dashed var(--line);
-  vertical-align:top;
-}
-
-td:first-child{
-  color:var(--mute);
-  width:38%;
-}
-
-.tag{
-  display:inline-block;
-  padding:1px 8px;
-  border-radius:10px;
-  background:#fff0bd;
-  font:13px sans-serif;
-}
-
-.cols{
-  display:grid;
-  grid-template-columns:
-    repeat(auto-fit,minmax(240px,1fr));
-  gap:14px;
-}
-
-@media(max-width:820px){
-  .grid{
-    grid-template-columns:1fr;
-  }
-
-  #view{
-    height:380px;
-  }
-}
+:root{--bg:#fbf8ef;--ink:#2b2a26;--mute:#6b675c;--gold:#e0a82e;--deep:#a86d0c;--line:#e4dcc4;--card:#fffdf6;--blue:#3b6fb6;--red:#c9402a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 "Noto Serif TC","Source Han Serif TC",Georgia,serif}
+header,section{max-width:1120px;margin:0 auto;padding:28px 20px}
+header{padding-top:48px;border-bottom:3px solid var(--gold)}
+h1{margin:0 0 6px;font-size:2.1rem;letter-spacing:.02em}
+h2{font-size:1.35rem;margin:0 0 12px;padding-left:12px;border-left:5px solid var(--gold)}
+h3{margin:0 0 4px;font-size:1.05rem;color:var(--deep)}
+.sub{color:var(--mute);margin:0}
+.mono,.eq{font-family:"Cambria Math","STIX Two Math",Menlo,Consolas,monospace}
+.eq{background:#fff7da;border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:8px 0;font-size:.95rem;overflow-x:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px}
+.grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:16px;align-items:start}
+#view{position:relative;height:520px;border:1px solid var(--line);border-radius:8px;background:radial-gradient(circle at 50% 40%,#fffef8,#f1e9d0);overflow:hidden;touch-action:none;cursor:grab}
+#view canvas{display:block}
+.hint{position:absolute;left:10px;bottom:8px;font:12px/1.4 sans-serif;color:var(--mute);pointer-events:none}
+.legend{display:flex;align-items:center;gap:8px;font:12px sans-serif;color:var(--mute);margin-top:8px}
+.bar{flex:1;height:10px;border-radius:5px;background:linear-gradient(90deg,#3b6fb6,#f2cf6a,#c9402a)}
+label{display:block;font:14px/1.4 sans-serif;margin-top:10px}
+label b{float:right;font-weight:600;color:var(--deep)}
+input[type=range]{width:100%;accent-color:var(--gold)}
+select{width:100%;padding:5px;margin-top:4px}
+.chk{display:inline-block;margin-right:14px}
+table{width:100%;border-collapse:collapse;font:14px/1.5 sans-serif}
+td{padding:4px 2px;border-bottom:1px dashed var(--line);vertical-align:top}
+td:first-child{color:var(--mute);width:38%}
+.tag{display:inline-block;padding:1px 8px;border-radius:10px;background:#fff0bd;font:13px sans-serif}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}#view{height:380px}}
 </style>
 </head>
-
 <body>
-
 <header>
   <h1>洋芋片的曲面幾何</h1>
-  <p class="sub">
-    用參數曲面、法向量、切平面與曲率，描述一片具有雙向彎曲形狀的洋芋片
-  </p>
+  <p class="sub">用參數曲面、法向量、切平面與曲率，描述一片疊得整整齊齊的洋芋片</p>
 </header>
-
 
 <!-- 第一區：製作動機 -->
 <section id="motivation">
-
   <h2>一、製作動機</h2>
-
-  <p>
-    吃洋芋片時我發現，這種洋芋片並不是平坦的薄片，
-    而是在兩個方向呈現不同方向的彎曲，外形很像數學上的馬鞍面。
-    這讓我好奇，一片看似簡單的洋芋片，
-    是否可以利用課堂上學到的曲面幾何來描述？
-  </p>
-
-  <p>
-    因此，我希望將洋芋片簡化成一個具有雙向彎曲特徵的數學曲面，
-    並透過互動式網頁觀察它在不同位置的法向量、切平面與曲率。
-    本作品使用
-    <b>雙曲拋物面（馬鞍面）</b>
-    作為洋芋片的簡化模型。
-    真實洋芋片的形狀更加複雜，因此本作品主要著重於曲面幾何的數學描述與視覺化。
-  </p>
-
+  <p>吃洋芋片時我發現，這種洋芋片不是平的：一個方向向上彎，垂直的另一個方向卻向下彎，像一個馬鞍。我好奇這個形狀為什麼能成立，也想知道它能不能用課堂上的曲面幾何描述。</p>
+  <p>這種形狀有實際用途。向兩個相反方向彎曲的薄片比平板更硬、不容易折斷，而且每一片的形狀完全相同，可以整齊地疊進筒子裡。這個作業用簡化的<b>雙曲拋物面（馬鞍面）</b>建立洋芋片模型，並用互動方式觀察它在各點的幾何性質。真實洋芋片的形狀當然更複雜，這裡只做合理的近似。</p>
 </section>
 
-
-<!-- 第二、三、五區 -->
+<!-- 第二、三、五區：3D 模型 + 參數控制 + 點選展示 -->
 <section id="lab">
-
   <h2>二、三、五　洋芋片 3D 模型、參數控制與點選展示</h2>
-
   <div class="grid">
-
     <div>
-
-      <div id="view">
-        <div class="hint">
-          拖曳旋轉　滾輪／雙指縮放　點選洋芋片表面選取一點
-        </div>
-      </div>
-
-      <div class="legend">
-        <span id="lgL">負</span>
-        <div class="bar"></div>
-        <span id="lgR">正</span>
-      </div>
-
+      <div id="view"><div class="hint">拖曳旋轉　滾輪／雙指縮放　點選洋芋片表面選取一點</div></div>
+      <div class="legend"><span id="lgL">負</span><div class="bar"></div><span id="lgR">正</span></div>
     </div>
-
-
     <div class="card">
-
       <h3>參數控制</h3>
-
-      <label>
-        X 方向彎曲 kx（向上彎）
-        <b id="vkx"></b>
-        <input
-          id="kx"
-          type="range"
-          min="0"
-          max="0.6"
-          step="0.01"
-          value="0.25"
-        >
+      <label>X 方向彎曲 kx（向上彎）<b id="vkx"></b><input id="kx" type="range" min="0" max="0.6" step="0.01" value="0.25"></label>
+      <label>Y 方向彎曲 ky（向下彎）<b id="vky"></b><input id="ky" type="range" min="0" max="0.6" step="0.01" value="0.25"></label>
+      <label>洋芋片長度 L（x 方向）<b id="vL"></b><input id="L" type="range" min="2" max="6" step="0.1" value="4"></label>
+      <label>洋芋片寬度 W（y 方向）<b id="vW"></b><input id="W" type="range" min="1.5" max="5" step="0.1" value="3"></label>
+      <label>表面著色
+        <select id="cmode"><option value="K">高斯曲率 K</option><option value="H">平均曲率 H</option><option value="none">不著色（金黃色）</option></select>
       </label>
-
-      <label>
-        Y 方向彎曲 ky（向下彎）
-        <b id="vky"></b>
-        <input
-          id="ky"
-          type="range"
-          min="0"
-          max="0.6"
-          step="0.01"
-          value="0.25"
-        >
-      </label>
-
-      <label>
-        洋芋片長度 L（x 方向）
-        <b id="vL"></b>
-        <input
-          id="L"
-          type="range"
-          min="2"
-          max="6"
-          step="0.1"
-          value="4"
-        >
-      </label>
-
-      <label>
-        洋芋片寬度 W（y 方向）
-        <b id="vW"></b>
-        <input
-          id="W"
-          type="range"
-          min="1.5"
-          max="5"
-          step="0.1"
-          value="3"
-        >
-      </label>
-
-      <label>
-        表面著色
-
-        <select id="cmode">
-          <option value="K">高斯曲率 K</option>
-          <option value="H">平均曲率 H</option>
-          <option value="none">
-            不著色（金黃色）
-          </option>
-        </select>
-
-      </label>
-
       <p style="margin:12px 0 0;font:14px sans-serif">
-
-        <span class="chk">
-          <input type="checkbox" id="sN" checked>
-          法向量
-        </span>
-
-        <span class="chk">
-          <input type="checkbox" id="sT" checked>
-          切平面
-        </span>
-
-        <span class="chk">
-          <input type="checkbox" id="sW">
-          網格線
-        </span>
-
+        <span class="chk"><input type="checkbox" id="sN" checked> 法向量</span>
+        <span class="chk"><input type="checkbox" id="sT" checked> 切平面</span>
+        <span class="chk"><input type="checkbox" id="sW"> 網格線</span>
       </p>
-
     </div>
-
   </div>
-
 </section>
-
 
 <!-- 第四區：幾何資訊 -->
 <section id="info">
-
   <h2>四、幾何資訊</h2>
-
   <div class="grid">
-
     <div class="card">
-
       <h3>目前使用的參數曲面</h3>
-
       <div class="eq" id="eqR"></div>
-
       <div class="eq" id="eqZ"></div>
-
       <div class="eq" id="eqDom"></div>
-
       <div class="eq" id="eqK"></div>
-
     </div>
-
-
     <div class="card">
-
       <h3>選取點 P 的幾何資訊</h3>
-
       <table>
-
-        <tr>
-          <td>參數 (u, v)</td>
-          <td id="iUV" class="mono"></td>
-        </tr>
-
-        <tr>
-          <td>座標 P</td>
-          <td id="iP" class="mono"></td>
-        </tr>
-
-        <tr>
-          <td>法向量 n</td>
-          <td id="iN" class="mono"></td>
-        </tr>
-
-        <tr>
-          <td>高斯曲率 K</td>
-          <td id="iK" class="mono"></td>
-        </tr>
-
-        <tr>
-          <td>平均曲率 H</td>
-          <td id="iH" class="mono"></td>
-        </tr>
-
-        <tr>
-          <td>主曲率 k₁, k₂</td>
-          <td id="iPr" class="mono"></td>
-        </tr>
-
-        <tr>
-          <td>點的類型</td>
-          <td id="iType"></td>
-        </tr>
-
+        <tr><td>參數 (u, v)</td><td id="iUV" class="mono"></td></tr>
+        <tr><td>座標 P</td><td id="iP" class="mono"></td></tr>
+        <tr><td>法向量 n</td><td id="iN" class="mono"></td></tr>
+        <tr><td>高斯曲率 K</td><td id="iK" class="mono"></td></tr>
+        <tr><td>平均曲率 H</td><td id="iH" class="mono"></td></tr>
+        <tr><td>主曲率 k₁, k₂</td><td id="iPr" class="mono"></td></tr>
+        <tr><td>點的類型</td><td id="iType"></td></tr>
       </table>
-
     </div>
-
   </div>
-
 </section>
-
 
 <!-- 第六區：幾何解釋 -->
 <section id="explain">
-
   <h2>六、幾何解釋</h2>
-
   <div class="cols">
-
-    <div class="card">
-
-      <h3>參數曲面</h3>
-
-      <p>
-        曲面可以想成把一張平面的「參數紙」(u, v)
-        彎進三維空間：每個 (u, v)
-        對應空間中一個點 r(u,v)。
-        本作業取
-        r(u,v) = (u, v, kx·u² − ky·v²)，
-        也就是把 (u,v) 平面上的點抬高到 z 高度。
-        kx 控制沿 x 方向向上彎的程度，
-        ky 控制沿 y 方向向下彎的程度。
-      </p>
-
-    </div>
-
-
-    <div class="card">
-
-      <h3>法向量</h3>
-
-      <p>
-        在曲面上沿 u、v 方向各走一小步，
-        得到兩個切向量 r_u 與 r_v。
-        它們的外積 r_u × r_v 垂直於曲面，
-        標準化後就是單位法向量 n。
-        這裡
-        r_u = (1,0,2kx·u)，
-        r_v = (0,1,−2ky·v)，
-        所以
-        n = (−2kx·u, 2ky·v, 1) /
-        √(1+4kx²u²+4ky²v²)。
-        法向量表示曲面在該點的方向。
-      </p>
-
-    </div>
-
-
-    <div class="card">
-
-      <h3>切平面</h3>
-
-      <p>
-        切平面是通過該點、並由 r_u 與 r_v
-        張成的平面，也是用平面對曲面做的最佳一階近似。
-        把曲面放得很大看一個點，
-        它會越來越像這個切平面。
-        切平面與法向量互相垂直，
-        因此知道其中一個就可以描述另一個。
-      </p>
-
-    </div>
-
-
-    <div class="card">
-
-      <h3>曲率</h3>
-
-      <p>
-        曲率描述曲面彎曲的程度。
-        在一點取各個方向的切線，
-        彎曲程度最大與最小的兩個值稱為主曲率
-        k₁、k₂。
-        高斯曲率
-        K = k₁·k₂，
-        平均曲率
-        H = (k₁+k₂)/2。
-      </p>
-
-      <p>
-        對於本作品的馬鞍面，
-        K 通常為負值，
-        因為兩個主曲率一正一負：
-        一個方向向上彎，
-        另一個方向向下彎。
-        這種點稱為鞍點或雙曲點。
-      </p>
-
-    </div>
-
+    <div class="card"><h3>參數曲面</h3><p>曲面可以想成把一張平面的「參數紙」(u, v) 彎進三維空間：每個 (u, v) 對應空間中一個點 r(u,v)。本作業取 r(u,v) = (u, v, kx·u² − ky·v²)，也就是把 (u,v) 平面上的點抬高到 z 高度。kx 控制沿 x 方向向上彎的程度，ky 控制沿 y 方向向下彎的程度。</p></div>
+    <div class="card"><h3>法向量</h3><p>在曲面上沿 u、v 方向各走一小步，得到兩個切向量 r_u 與 r_v。它們的外積 r_u × r_v 垂直於曲面，標準化後就是單位法向量 n。這裡 r_u = (1,0,2kx·u)，r_v = (0,1,−2ky·v)，所以 n = (−2kx·u, 2ky·v, 1)/√(1+4kx²u²+4ky²v²)。法向量表示曲面在該點「朝向哪裡」。</p></div>
+    <div class="card"><h3>切平面</h3><p>切平面是通過該點、並由 r_u 與 r_v 張成的平面，也是用平面對曲面做的最佳一階近似。把曲面放得很大看一個點，它會越來越像這個切平面。切平面與法向量互相垂直，所以選一個就決定了另一個。</p></div>
+    <div class="card"><h3>曲率</h3><p>曲率描述曲面離開切平面的速度。在一點取各個方向的切線，彎曲程度最大與最小的兩個值稱為主曲率 k₁、k₂。高斯曲率 K = k₁·k₂，平均曲率 H = (k₁+k₂)/2。洋芋片的 K 是負的，因為兩個主曲率一正一負，一個方向向上彎、另一個向下彎，這種點叫鞍點（雙曲點）。K 為正的點像碗或球面，K 為 0 的點像圓柱面或平面。</p></div>
   </div>
-
 </section>
 
-
-<!-- Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-
 <script>
-
-/* =========================================================
-   1. 數學核心
-   ========================================================= */
-
-const P = {
-  kx: 0.25,
-  ky: 0.25,
-  a: 2,
-  b: 1.5
-};
-
-
-/* 洋芋片曲面：
-
-   r(u,v) = (u, v, kx*u² - ky*v²)
-
-*/
-
-const zf = (u,v) =>
-  P.kx*u*u - P.ky*v*v;
-
-
-/* 計算曲面的幾何量 */
-
-function geo(u,v){
-
-  const zu = 2*P.kx*u;
-  const zv = -2*P.ky*v;
-
-  const zuu = 2*P.kx;
-  const zvv = -2*P.ky;
-
-  const w =
-    1 +
-    zu*zu +
-    zv*zv;
-
-  const s = Math.sqrt(w);
-
-
-  /* 高斯曲率 */
-
-  const K =
-    (zuu*zvv)/(w*w);
-
-
-  /* 平均曲率 */
-
-  const H =
-    (
-      (1+zv*zv)*zuu +
-      (1+zu*zu)*zvv
-    ) /
-    (2*w*s);
-
-
-  const d =
-    Math.sqrt(
-      Math.max(H*H-K,0)
-    );
-
-
-  return {
-
-    zu,
-    zv,
-    K,
-    H,
-
-    k1: H+d,
-    k2: H-d,
-
-    n:[
-      -zu/s,
-      -zv/s,
-      1/s
-    ]
-
-  };
-
+/* ===== 1. 數學核心：所有顯示的公式與數值都來自這裡 ===== */
+const P = {kx:.25, ky:.25, a:2, b:1.5};            // a=L/2, b=W/2
+const zf = (u,v)=>P.kx*u*u - P.ky*v*v;               // z(u,v)
+function geo(u,v){                                    // 曲面在 (u,v) 的幾何量
+  const zu=2*P.kx*u, zv=-2*P.ky*v, zuu=2*P.kx, zvv=-2*P.ky;
+  const w=1+zu*zu+zv*zv, s=Math.sqrt(w);
+  const K=(zuu*zvv)/(w*w);                            // z_uv = 0
+  const H=((1+zv*zv)*zuu+(1+zu*zu)*zvv)/(2*w*s);
+  const d=Math.sqrt(Math.max(H*H-K,0));
+  return {zu,zv,K,H,k1:H+d,k2:H-d,n:[-zu/s,-zv/s,1/s]};
 }
+const inDomain=(u,v)=>(u/P.a)**2+(v/P.b)**2<=1;
 
-
-/* 洋芋片橢圓形定義域 */
-
-const inDomain = (u,v) =>
-  (u/P.a)**2 +
-  (v/P.b)**2 <= 1;
-
-
-/* =========================================================
-   2. Three.js 場景
-   ========================================================= */
-
-const view =
-  document.getElementById("view");
-
-
-const renderer =
-  new THREE.WebGLRenderer({
-    antialias:true,
-    alpha:true
-  });
-
-
-renderer.setPixelRatio(
-  Math.min(window.devicePixelRatio,2)
-);
-
-
+/* ===== 2. Three.js 場景（群組 G 旋轉 -90° 使數學 z 軸朝上） ===== */
+const view=document.getElementById('view');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 view.prepend(renderer.domElement);
+const scene=new THREE.Scene(), camera=new THREE.PerspectiveCamera(40,1,.1,100);
+scene.add(new THREE.AmbientLight(0xffffff,.65));
+const dl=new THREE.DirectionalLight(0xffffff,.8); dl.position.set(3,6,4); scene.add(dl);
+const G=new THREE.Group(); G.rotation.x=-Math.PI/2; scene.add(G);
 
-
-const scene =
-  new THREE.Scene();
-
-
-const camera =
-  new THREE.PerspectiveCamera(
-    40,
-    1,
-    0.1,
-    100
-  );
-
-
-/* 光源 */
-
-scene.add(
-  new THREE.AmbientLight(
-    0xffffff,
-    0.65
-  )
-);
-
-
-const dl =
-  new THREE.DirectionalLight(
-    0xffffff,
-    0.8
-  );
-
-dl.position.set(3,6,4);
-
-scene.add(dl);
-
-
-/* 建立群組 */
-
-const G =
-  new THREE.Group();
-
-
-G.rotation.x =
-  -Math.PI/2;
-
-
-scene.add(G);
-
-
-/* =========================================================
-   3. 建立曲面網格
-   ========================================================= */
-
-const N = 64;
-
-const nV =
-  (N+1)*(N+1);
-
-
-const pos =
-  new Float32Array(nV*3);
-
-const col =
-  new Float32Array(nV*3);
-
-const idx = [];
-
-
-/* 三角形索引 */
-
-for(let i=0;i<N;i++){
-
-  for(let j=0;j<N;j++){
-
-    const a =
-      i*(N+1)+j;
-
-    const b =
-      a+1;
-
-    const c =
-      a+N+1;
-
-    const d =
-      c+1;
-
-
-    idx.push(
-      a,c,b,
-      b,c,d
-    );
-
-  }
-
-}
-
-
-/* BufferGeometry */
-
-const geom =
-  new THREE.BufferGeometry();
-
-
-geom.setAttribute(
-  "position",
-  new THREE.BufferAttribute(
-    pos,
-    3
-  )
-);
-
-
-geom.setAttribute(
-  "color",
-  new THREE.BufferAttribute(
-    col,
-    3
-  )
-);
-
-
+const N=64, nV=(N+1)*(N+1);
+const pos=new Float32Array(nV*3), col=new Float32Array(nV*3), idx=[];
+for(let i=0;i<N;i++)for(let j=0;j<N;j++){const a=i*(N+1)+j,b=a+1,c=a+N+1,d=c+1;idx.push(a,c,b,b,c,d);}
+const geom=new THREE.BufferGeometry();
+geom.setAttribute('position',new THREE.BufferAttribute(pos,3));
+geom.setAttribute('color',new THREE.BufferAttribute(col,3));
 geom.setIndex(idx);
+const mesh=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide,roughness:.6,metalness:0,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:1}));
+const wire=new THREE.Mesh(geom,new THREE.MeshBasicMaterial({color:0x8a5a00,wireframe:true,transparent:true,opacity:.35}));
+G.add(mesh,wire);
 
+const marker=new THREE.Mesh(new THREE.SphereGeometry(.07,16,12),new THREE.MeshBasicMaterial({color:0x222222}));
+const arrow=new THREE.ArrowHelper(new THREE.Vector3(0,0,1),new THREE.Vector3(),1.1,0xc9402a,.22,.12);
+const tpGeo=new THREE.BufferGeometry(); tpGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(12),3)); tpGeo.setIndex([0,1,2,0,2,3]);
+const tp=new THREE.Mesh(tpGeo,new THREE.MeshBasicMaterial({color:0x3b6fb6,transparent:true,opacity:.3,side:THREE.DoubleSide,depthWrite:false}));
+G.add(marker,arrow,tp);
 
-/* 洋芋片 */
-
-const mesh =
-  new THREE.Mesh(
-    geom,
-    new THREE.MeshStandardMaterial({
-
-      vertexColors:true,
-
-      side:
-        THREE.DoubleSide,
-
-      roughness:0.6,
-
-      metalness:0,
-
-      polygonOffset:true,
-
-      polygonOffsetFactor:1,
-
-      polygonOffsetUnits:1
-
-    })
-  );
-
-
-/* 網格線 */
-
-const wire =
-  new THREE.Mesh(
-    geom,
-    new THREE.MeshBasicMaterial({
-
-      color:0x8a5a00,
-
-      wireframe:true,
-
-      transparent:true,
-
-      opacity:0.35
-
-    })
-  );
-
-
-G.add(mesh);
-G.add(wire);
-
-
-/* =========================================================
-   4. 選取點、法向量、切平面
-   ========================================================= */
-
-const marker =
-  new THREE.Mesh(
-    new THREE.SphereGeometry(
-      0.07,
-      16,
-      12
-    ),
-
-    new THREE.MeshBasicMaterial({
-      color:0x222222
-    })
-  );
-
-
-const arrow =
-  new THREE.ArrowHelper(
-    new THREE.Vector3(0,0,1),
-    new THREE.Vector3(),
-    1.1,
-    0xc9402a,
-    0.22,
-    0.12
-  );
-
-
-const tpGeo =
-  new THREE.BufferGeometry();
-
-
-tpGeo.setAttribute(
-  "position",
-  new THREE.BufferAttribute(
-    new Float32Array(12),
-    3
-  )
-);
-
-
-tpGeo.setIndex([
-  0,1,2,
-  0,2,3
-]);
-
-
-const tp =
-  new THREE.Mesh(
-    tpGeo,
-
-    new THREE.MeshBasicMaterial({
-
-      color:0x3b6fb6,
-
-      transparent:true,
-
-      opacity:0.3,
-
-      side:THREE.DoubleSide,
-
-      depthWrite:false
-
-    })
-  );
-
-
-G.add(marker);
-G.add(arrow);
-G.add(tp);
-
-
-/* =========================================================
-   5. 曲率顏色
-   ========================================================= */
-
-const ramp = (t) => {
-
-  const middle =
-    [.95,.8,.3];
-
-  const low =
-    [.23,.44,.71];
-
-  const high =
-    [.79,.25,.16];
-
-  const target =
-    t < 0 ? low : high;
-
-  const s =
-    Math.min(
-      Math.abs(t),
-      1
-    );
-
-  return middle.map(
-    (x,k) =>
-      x+(target[k]-x)*s
-  );
-
+const ramp=(t)=>{ // t∈[-1,1]：藍(負) → 淡金(0) → 紅(正)
+  const m=[.95,.8,.3], lo=[.23,.44,.71], hi=[.79,.25,.16], e=t<0?lo:hi, s=Math.min(Math.abs(t),1);
+  return m.map((x,k)=>x+(e[k]-x)*s);
 };
 
-
-/* =========================================================
-   6. 重建曲面
-   ========================================================= */
-
-let sel = {
-  u:0.9,
-  v:0.5
-};
-
-
+/* ===== 3. 依參數重建網格與著色 ===== */
+let sel={u:.9,v:.5};
 function rebuild(){
-
-  const mode =
-    document.getElementById(
-      "cmode"
-    ).value;
-
-
-  const vals =
-    new Float32Array(nV);
-
-
-  let mx = 1e-9;
-
-
-  for(let i=0;i<=N;i++){
-
-    for(let j=0;j<=N;j++){
-
-      const p =
-        -1+2*i/N;
-
-      const q =
-        -1+2*j/N;
-
-
-      /* 將正方形參數映射成橢圓 */
-
-      const x =
-        p*Math.sqrt(
-          1-q*q/2
-        );
-
-      const y =
-        q*Math.sqrt(
-          1-p*p/2
-        );
-
-
-      const u =
-        P.a*x;
-
-      const v =
-        P.b*y;
-
-
-      const k =
-        i*(N+1)+j;
-
-
-      const g =
-        geo(u,v);
-
-
-      pos.set(
-        [
-          u,
-          v,
-          zf(u,v)
-        ],
-        k*3
-      );
-
-
-      vals[k] =
-        mode==="K"
-          ? g.K
-          : mode==="H"
-            ? g.H
-            : 0;
-
-
-      mx =
-        Math.max(
-          mx,
-          Math.abs(vals[k])
-        );
-
-    }
-
+  const mode=document.getElementById('cmode').value, vals=new Float32Array(nV);
+  let mx=1e-9;
+  for(let i=0;i<=N;i++)for(let j=0;j<=N;j++){
+    const p=-1+2*i/N, q=-1+2*j/N;                     // 正方形 → 橢圓
+    const x=p*Math.sqrt(1-q*q/2), y=q*Math.sqrt(1-p*p/2);
+    const u=P.a*x, v=P.b*y, k=i*(N+1)+j, g=geo(u,v);
+    pos.set([u,v,zf(u,v)],k*3);
+    vals[k]=mode==='K'?g.K:mode==='H'?g.H:0; mx=Math.max(mx,Math.abs(vals[k]));
   }
-
-
-  /* 顏色 */
-
   for(let k=0;k<nV;k++){
-
-    const c =
-      mode==="none"
-        ? [.91,.69,.18]
-        : ramp(
-            vals[k]/mx
-          );
-
-
-    col.set(
-      c,
-      k*3
-    );
-
+    const c=mode==='none'?[.91,.69,.18]:ramp(vals[k]/mx); col.set(c,k*3);
   }
-
-
-  geom.attributes
-    .position
-    .needsUpdate = true;
-
-
-  geom.attributes
-    .color
-    .needsUpdate = true;
-
-
-  geom.computeVertexNormals();
-
-  geom.computeBoundingSphere();
-
-
-  /* 曲率圖例 */
-
-  document.getElementById(
-    "lgL"
-  ).textContent =
-    mode==="none"
-      ? ""
-      : mode==="K"
-        ? "K＝"+(-mx).toFixed(2)
-        : "H＝"+(-mx).toFixed(2);
-
-
-  document.getElementById(
-    "lgR"
-  ).textContent =
-    mode==="none"
-      ? ""
-      : mode==="K"
-        ? "K＝"+mx.toFixed(2)
-        : "H＝"+mx.toFixed(2);
-
-
-  document.querySelector(
-    ".legend"
-  ).style.visibility =
-    mode==="none"
-      ? "hidden"
-      : "visible";
-
+  geom.attributes.position.needsUpdate=geom.attributes.color.needsUpdate=true;
+  geom.computeVertexNormals(); geom.computeBoundingSphere();
+  const lg=(t)=>mode==='none'?'':t;
+  document.getElementById('lgL').textContent=lg(mode==='K'?'K＝'+(-mx).toFixed(2):'H＝'+(-mx).toFixed(2));
+  document.getElementById('lgR').textContent=lg((mode==='K'?'K＝':'H＝')+mx.toFixed(2));
+  document.querySelector('.legend').style.visibility=mode==='none'?'hidden':'visible';
 }
 
-
-/* =========================================================
-   7. 更新選取點
-   ========================================================= */
-
-const f =
-  (x,d=3) =>
-    (x<0?"−":"")+
-    Math.abs(x).toFixed(d);
-
-
+/* ===== 4. 選取點：標記、法向量、切平面、資訊面板 ===== */
+const f=(x,d=3)=>(x<0?'−':'')+Math.abs(x).toFixed(d);
 function updatePoint(){
-
-  /* 如果點超出橢圓邊界，拉回 */
-
-  const r =
-    Math.hypot(
-      sel.u/P.a,
-      sel.v/P.b
-    );
-
-
-  if(r>0.98){
-
-    sel.u /=
-      r/0.98;
-
-    sel.v /=
-      r/0.98;
-
-  }
-
-
-  const u =
-    sel.u;
-
-  const v =
-    sel.v;
-
-
-  const z =
-    zf(u,v);
-
-
-  const g =
-    geo(u,v);
-
-
-  const n =
-    new THREE.Vector3(
-      ...g.n
-    );
-
-
-  const pt =
-    new THREE.Vector3(
-      u,
-      v,
-      z
-    );
-
-
-  /* 選取點 */
-
+  // 參數改變後若點跑到定義域外，就拉回邊界內
+  const r=Math.hypot(sel.u/P.a,sel.v/P.b); if(r>.98){sel.u/=r/.98;sel.v/=r/.98;}
+  const {u,v}=sel, z=zf(u,v), g=geo(u,v), n=new THREE.Vector3(...g.n);
+  const pt=new THREE.Vector3(u,v,z);
   marker.position.copy(pt);
+  arrow.position.copy(pt); arrow.setDirection(n);
+  const e1=new THREE.Vector3(1,0,g.zu).normalize(), e2=new THREE.Vector3().crossVectors(n,e1), s=.9, c=[[-1,-1],[1,-1],[1,1],[-1,1]];
+  c.forEach(([a,b],k)=>{const q=pt.clone().addScaledVector(e1,a*s).addScaledVector(e2,b*s); tpGeo.attributes.position.setXYZ(k,q.x,q.y,q.z);});
+  tpGeo.attributes.position.needsUpdate=true; tpGeo.computeBoundingSphere();
+  arrow.visible=sN.checked; tp.visible=sT.checked; wire.visible=sW.checked;
 
-
-  /* 法向量 */
-
-  arrow.position.copy(pt);
-
-  arrow.setDirection(n);
-
-
-  /* 切平面 */
-
-  const e1 =
-    new THREE.Vector3(
-      1,
-      0,
-      g.zu
-    ).normalize();
-
-
-  const e2 =
-    new THREE.Vector3()
-      .crossVectors(
-        n,
-        e1
-      );
-
-
-  const s = 0.9;
-
-
-  const corners = [
-    [-1,-1],
-    [1,-1],
-    [1,1],
-    [-1,1]
-  ];
-
-
-  corners.forEach(
-    ([a,b],k)=>{
-
-      const q =
-        pt.clone()
-          .addScaledVector(
-            e1,
-            a*s
-          )
-          .addScaledVector(
-            e2,
-            b*s
-          );
-
-
-      tpGeo
-        .attributes
-        .position
-        .setXYZ(
-          k,
-          q.x,
-          q.y,
-          q.z
-        );
-
-    }
-  );
-
-
-  tpGeo.attributes
-    .position
-    .needsUpdate = true;
-
-
-  tpGeo.computeBoundingSphere();
-
-
-  /* 顯示／隱藏 */
-
-  arrow.visible =
-    document.getElementById(
-      "sN"
-    ).checked;
-
-
-  tp.visible =
-    document.getElementById(
-      "sT"
-    ).checked;
-
-
-  wire.visible =
-    document.getElementById(
-      "sW"
-    ).checked;
-
-
-  /* 資訊 */
-
-  document.getElementById(
-    "iUV"
-  ).textContent =
-    `(${f(u,2)}, ${f(v,2)})`;
-
-
-  document.getElementById(
-    "iP"
-  ).textContent =
-    `(${f(u,2)}, ${f(v,2)}, ${f(z,2)})`;
-
-
-  document.getElementById(
-    "iN"
-  ).textContent =
-    `(${f(g.n[0])}, ${f(g.n[1])}, ${f(g.n[2])})`;
-
-
-  document.getElementById(
-    "iK"
-  ).textContent =
-    f(g.K,4);
-
-
-  document.getElementById(
-    "iH"
-  ).textContent =
-    f(g.H,4);
-
-
-  document.getElementById(
-    "iPr"
-  ).textContent =
-    `${f(g.k1,3)}, ${f(g.k2,3)}`;
-
-
-  const type =
-    Math.abs(g.K)<1e-6
-      ? "拋物點／平坦（K≈0）"
-      : g.K<0
-        ? "鞍點（K<0，雙曲點）"
-        : "橢圓點（K>0）";
-
-
-  document.getElementById(
-    "iType"
-  ).innerHTML =
-    '<span class="tag">'+
-    type+
-    '</span>';
-
+  const set=(id,t)=>document.getElementById(id).textContent=t;
+  set('iUV',`(${f(u,2)}, ${f(v,2)})`);
+  set('iP',`(${f(u,2)}, ${f(v,2)}, ${f(z,2)})`);
+  set('iN',`(${f(g.n[0])}, ${f(g.n[1])}, ${f(g.n[2])})`);
+  set('iK',f(g.K,4)); set('iH',f(g.H,4)); set('iPr',`${f(g.k1,3)}, ${f(g.k2,3)}`);
+  const t=Math.abs(g.K)<1e-6?'拋物點／平坦（K≈0）':g.K<0?'鞍點（K<0，雙曲點）':'橢圓點（K>0）';
+  document.getElementById('iType').innerHTML='<span class="tag">'+t+'</span>';
 }
-
-
-/* =========================================================
-   8. 更新公式
-   ========================================================= */
-
 function updateText(){
-
-  const k =
-    x =>
-      x.toFixed(2);
-
-
-  document.getElementById(
-    "eqR"
-  ).textContent =
-    `r(u,v) = ( u, v, ${k(P.kx)}·u² − ${k(P.ky)}·v² )`;
-
-
-  document.getElementById(
-    "eqZ"
-  ).textContent =
-    `z = kx·u² − ky·v²，kx=${k(P.kx)}，ky=${k(P.ky)}`;
-
-
-  document.getElementById(
-    "eqDom"
-  ).textContent =
-    `定義域：(u/${k(P.a)})² + (v/${k(P.b)})² ≤ 1　（a=L/2，b=W/2）`;
-
-
-  document.getElementById(
-    "eqK"
-  ).textContent =
-    `K = −4·kx·ky / (1+4kx²u²+4ky²v²)²，H = [(1+z_v²)z_uu + (1+z_u²)z_vv] / (2(1+z_u²+z_v²)^(3/2))`;
-
+  const k=(x)=>x.toFixed(2);
+  eqR.textContent=`r(u,v) = ( u, v, ${k(P.kx)}·u² − ${k(P.ky)}·v² )`;
+  eqZ.textContent=`z = kx·u² − ky·v²，kx=${k(P.kx)}，ky=${k(P.ky)}`;
+  eqDom.textContent=`定義域：(u/${k(P.a)})² + (v/${k(P.b)})² ≤ 1　（a=L/2，b=W/2）`;
+  eqK.textContent=`K = −4·kx·ky / (1+4kx²u²+4ky²v²)²，H = [(1+z_v²)z_uu + (1+z_u²)z_vv] / (2(1+z_u²+z_v²)^{3/2})`;
 }
-
-
-/* =========================================================
-   9. 參數控制
-   ========================================================= */
-
 function onParams(){
-
-  const kx =
-    document.getElementById(
-      "kx"
-    );
-
-  const ky =
-    document.getElementById(
-      "ky"
-    );
-
-  const L =
-    document.getElementById(
-      "L"
-    );
-
-  const W =
-    document.getElementById(
-      "W"
-    );
-
-
-  P.kx =
-    Number(kx.value);
-
-  P.ky =
-    Number(ky.value);
-
-  P.a =
-    Number(L.value)/2;
-
-  P.b =
-    Number(W.value)/2;
-
-
-  document.getElementById(
-    "vkx"
-  ).textContent =
-    kx.value;
-
-
-  document.getElementById(
-    "vky"
-  ).textContent =
-    ky.value;
-
-
-  document.getElementById(
-    "vL"
-  ).textContent =
-    L.value;
-
-
-  document.getElementById(
-    "vW"
-  ).textContent =
-    W.value;
-
-
-  rebuild();
-
-  updateText();
-
-  updatePoint();
-
+  P.kx=+kx.value; P.ky=+ky.value; P.a=+L.value/2; P.b=+W.value/2;
+  vkx.textContent=kx.value; vky.textContent=ky.value; vL.textContent=L.value; vW.textContent=W.value;
+  rebuild(); updateText(); updatePoint();
 }
+['kx','ky','L','W','cmode'].forEach(id=>document.getElementById(id).addEventListener('input',onParams));
+['sN','sT','sW'].forEach(id=>document.getElementById(id).addEventListener('change',updatePoint));
 
-
-["kx","ky","L","W","cmode"]
-.forEach(
-  id =>
-    document
-      .getElementById(id)
-      .addEventListener(
-        "input",
-        onParams
-      )
-);
-
-
-["sN","sT","sW"]
-.forEach(
-  id =>
-    document
-      .getElementById(id)
-      .addEventListener(
-        "change",
-        updatePoint
-      )
-);
-
-
-/* =========================================================
-   10. 旋轉、縮放與點選
-   ========================================================= */
-
-let th = 0.7;
-
-let ph = 1.0;
-
-let rad = 8;
-
-
-function placeCam(){
-
-  camera.position.set(
-
-    rad*
-      Math.sin(ph)*
-      Math.sin(th),
-
-    rad*
-      Math.cos(ph),
-
-    rad*
-      Math.sin(ph)*
-      Math.cos(th)
-
-  );
-
-
-  camera.lookAt(
-    0,
-    0.2,
-    0
-  );
-
-}
-
-
-let drag = null;
-
-
-const el =
-  renderer.domElement;
-
-
-const ray =
-  new THREE.Raycaster();
-
-
-/* 滑鼠按下 */
-
-el.addEventListener(
-  "pointerdown",
-  e => {
-
-    drag = {
-
-      x:e.clientX,
-
-      y:e.clientY,
-
-      sx:e.clientX,
-
-      sy:e.clientY
-
-    };
-
-
-    el.setPointerCapture(
-      e.pointerId
-    );
-
-
-    view.style.cursor =
-      "grabbing";
-
+/* ===== 5. 自製軌道控制：旋轉、縮放、點選（Raycaster） ===== */
+let th=.7, ph=1.0, rad=8;
+function placeCam(){camera.position.set(rad*Math.sin(ph)*Math.sin(th),rad*Math.cos(ph),rad*Math.sin(ph)*Math.cos(th));camera.lookAt(0,.2,0);}
+let drag=null;
+const el=renderer.domElement, ray=new THREE.Raycaster();
+el.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY};el.setPointerCapture(e.pointerId);view.style.cursor='grabbing';});
+el.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  th-=(e.clientX-drag.x)*.008; ph=Math.min(Math.max(ph-(e.clientY-drag.y)*.008,.1),Math.PI-.1);
+  drag.x=e.clientX; drag.y=e.clientY; placeCam();
+});
+el.addEventListener('pointerup',e=>{
+  view.style.cursor='grab';
+  if(drag && Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<5){      // 位移很小視為點選
+    const r=el.getBoundingClientRect();
+    ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);
+    const h=ray.intersectObject(mesh)[0];
+    if(h){const q=G.worldToLocal(h.point.clone()); if(inDomain(q.x,q.y)){sel={u:q.x,v:q.y};updatePoint();}}
   }
-);
-
-
-/* 滑鼠移動 */
-
-el.addEventListener(
-  "pointermove",
-  e => {
-
-    if(!drag)
-      return;
-
-
-    th -=
-      (e.clientX-drag.x)
-      *0.008;
-
-
-    ph =
-      Math.min(
-        Math.max(
-          ph-
-          (e.clientY-drag.y)
-          *0.008,
-
-          0.1
-        ),
-
-        Math.PI-0.1
-      );
-
-
-    drag.x =
-      e.clientX;
-
-    drag.y =
-      e.clientY;
-
-
-    placeCam();
-
-  }
-);
-
-
-/* 滑鼠放開 */
-
-el.addEventListener(
-  "pointerup",
-  e => {
-
-    view.style.cursor =
-      "grab";
-
-
-    if(
-      drag &&
-      Math.hypot(
-        e.clientX-drag.sx,
-        e.clientY-drag.sy
-      ) < 5
-    ){
-
-      const r =
-        el.getBoundingClientRect();
-
-
-      ray.setFromCamera(
-
-        new THREE.Vector2(
-
-          (e.clientX-r.left)
-          /r.width*2-1,
-
-          -(e.clientY-r.top)
-          /r.height*2+1
-
-        ),
-
-        camera
-
-      );
-
-
-      const h =
-        ray.intersectObject(
-          mesh
-        )[0];
-
-
-      if(h){
-
-        const q =
-          G.worldToLocal(
-            h.point.clone()
-          );
-
-
-        if(
-          inDomain(
-            q.x,
-            q.y
-          )
-        ){
-
-          sel = {
-            u:q.x,
-            v:q.y
-          };
-
-
-          updatePoint();
-
-        }
-
-      }
-
-    }
-
-
-    drag = null;
-
-  }
-);
-
-
-/* 滾輪縮放 */
-
-el.addEventListener(
-  "wheel",
-  e => {
-
-    e.preventDefault();
-
-
-    rad =
-      Math.min(
-        Math.max(
-          rad*
-          (1+e.deltaY*0.001),
-
-          3
-        ),
-
-        20
-      );
-
-
-    placeCam();
-
-  },
-  {
-    passive:false
-  }
-);
-
-
-/* =========================================================
-   11. 手機雙指縮放
-   ========================================================= */
-
-let pinch = 0;
-
-
-el.addEventListener(
-  "touchmove",
-  e => {
-
-    if(
-      e.touches.length===2
-    ){
-
-      const d =
-        Math.hypot(
-
-          e.touches[0].clientX-
-          e.touches[1].clientX,
-
-          e.touches[0].clientY-
-          e.touches[1].clientY
-
-        );
-
-
-      if(pinch){
-
-        rad =
-          Math.min(
-            Math.max(
-              rad*pinch/d,
-              3
-            ),
-            20
-          );
-
-      }
-
-
-      pinch = d;
-
-      placeCam();
-
-    }
-
-  },
-  {
-    passive:true
-  }
-);
-
-
-el.addEventListener(
-  "touchend",
-  () => {
-    pinch = 0;
-  }
-);
-
-
-/* =========================================================
-   12. 視窗大小調整
-   ========================================================= */
-
-function resize(){
-
-  const w =
-    view.clientWidth;
-
-  const h =
-    view.clientHeight;
-
-
-  renderer.setSize(
-    w,
-    h
-  );
-
-
-  camera.aspect =
-    w/h;
-
-
-  camera.updateProjectionMatrix();
-
-}
-
-
-window.addEventListener(
-  "resize",
-  resize
-);
-
-
-/* =========================================================
-   13. 動畫
-   ========================================================= */
-
-(function loop(){
-
-  requestAnimationFrame(
-    loop
-  );
-
-
-  renderer.render(
-    scene,
-    camera
-  );
-
-})();
-
-
-/* 初始化 */
-
-resize();
-
-placeCam();
-
-onParams();
-
+  drag=null;
+});
+el.addEventListener('wheel',e=>{e.preventDefault();rad=Math.min(Math.max(rad*(1+e.deltaY*.001),3),20);placeCam();},{passive:false});
+let pinch=0;
+el.addEventListener('touchmove',e=>{if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);if(pinch)rad=Math.min(Math.max(rad*pinch/d,3),20);pinch=d;placeCam();}},{passive:true});
+el.addEventListener('touchend',()=>pinch=0);
+
+function resize(){const w=view.clientWidth,h=view.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);
+(function loop(){requestAnimationFrame(loop);renderer.render(scene,camera);})();
+
+resize(); placeCam(); onParams();
 </script>
-
 </body>
 </html>
