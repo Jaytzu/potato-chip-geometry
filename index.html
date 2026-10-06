@@ -54,7 +54,7 @@ td:first-child{color:var(--mute);width:38%}
   <h2>二、洋芋片 3D 模型、參數控制與點選展示</h2>
   <div class="grid">
     <div>
-      <div id="view"><div class="hint">拖曳旋轉　滾輪／雙指縮放　點選洋芋片表面選取一點</div></div>
+      <div id="view"><div class="hint">拖曳空白處旋轉　拖曳黑點移動 P　點選表面直接選點　滾輪縮放</div></div>
       <div class="legend"><span id="lgL">負</span><div class="bar"></div><span id="lgR">正</span></div>
     </div>
     <div class="card">
@@ -66,6 +66,10 @@ td:first-child{color:var(--mute);width:38%}
       <label>表面著色
         <select id="cmode"><option value="K">高斯曲率 K</option><option value="H">平均曲率 H</option><option value="none">不著色（金黃色）</option></select>
       </label>
+      <h3 style="margin-top:16px">選取點 P 的位置</h3>
+      <p class="sub" style="font:13px/1.5 sans-serif">可在曲面上拖曳黑點，或用下面的滑桿微調 (u, v)</p>
+      <label>u<b id="vpu"></b><input id="pu" type="range" step="any"></label>
+      <label>v<b id="vpv"></b><input id="pv" type="range" step="any"></label>
       <p style="margin:12px 0 0;font:14px sans-serif">
         <span class="chk"><input type="checkbox" id="sN" checked> 法向量</span>
         <span class="chk"><input type="checkbox" id="sT" checked> 切平面</span>
@@ -148,7 +152,7 @@ const mesh=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({vertexColors:true
 const wire=new THREE.Mesh(geom,new THREE.MeshBasicMaterial({color:0x8a5a00,wireframe:true,transparent:true,opacity:.35}));
 G.add(mesh,wire);
 
-const marker=new THREE.Mesh(new THREE.SphereGeometry(.07,16,12),new THREE.MeshBasicMaterial({color:0x222222}));
+const marker=new THREE.Mesh(new THREE.SphereGeometry(.1,20,14),new THREE.MeshBasicMaterial({color:0x222222}));
 const arrow=new THREE.ArrowHelper(new THREE.Vector3(0,0,1),new THREE.Vector3(),1.1,0xc9402a,.22,.12);
 const tpGeo=new THREE.BufferGeometry(); tpGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(12),3)); tpGeo.setIndex([0,1,2,0,2,3]);
 const tp=new THREE.Mesh(tpGeo,new THREE.MeshBasicMaterial({color:0x3b6fb6,transparent:true,opacity:.3,side:THREE.DoubleSide,depthWrite:false}));
@@ -196,6 +200,8 @@ function updatePoint(){
   tpGeo.attributes.position.needsUpdate=true; tpGeo.computeBoundingSphere();
   arrow.visible=sN.checked; tp.visible=sT.checked; wire.visible=sW.checked;
 
+  pu.min=-.97*P.a; pu.max=.97*P.a; pu.value=u; pv.min=-.97*P.b; pv.max=.97*P.b; pv.value=v;
+  vpu.textContent=f(u,2); vpv.textContent=f(v,2);
   const set=(id,t)=>document.getElementById(id).textContent=t;
   set('iUV',`(${f(u,2)}, ${f(v,2)})`);
   set('iP',`(${f(u,2)}, ${f(v,2)}, ${f(z,2)})`);
@@ -217,6 +223,9 @@ function onParams(){
   rebuild(); updateText(); updatePoint();
 }
 ['kx','ky','L','W','cmode'].forEach(id=>document.getElementById(id).addEventListener('input',onParams));
+const clampTo=(x,l)=>Math.min(Math.max(x,-l),l);
+pu.addEventListener('input',()=>{sel.u=+pu.value;sel.v=clampTo(sel.v,P.b*Math.sqrt(Math.max(0,.94-(sel.u/P.a)**2)));updatePoint();});
+pv.addEventListener('input',()=>{sel.v=+pv.value;sel.u=clampTo(sel.u,P.a*Math.sqrt(Math.max(0,.94-(sel.v/P.b)**2)));updatePoint();});
 ['sN','sT','sW'].forEach(id=>document.getElementById(id).addEventListener('change',updatePoint));
 
 /* ===== 5. 自製軌道控制：旋轉、縮放、點選（Raycaster） ===== */
@@ -224,9 +233,20 @@ let th=.7, ph=1.0, rad=8;
 function placeCam(){camera.position.set(rad*Math.sin(ph)*Math.sin(th),rad*Math.cos(ph),rad*Math.sin(ph)*Math.cos(th));camera.lookAt(0,.2,0);}
 let drag=null;
 const el=renderer.domElement, ray=new THREE.Raycaster();
-el.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY};el.setPointerCapture(e.pointerId);view.style.cursor='grabbing';});
+let dragPt=false;
+function setRay(e){const r=el.getBoundingClientRect();ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);}
+function onMarker(e){setRay(e);return ray.intersectObject(marker).length>0;}
+function movePoint(e){                                 // 讓 P 沿曲面跟著滑鼠移動
+  setRay(e);const h=ray.intersectObject(mesh)[0];
+  if(h){const q=G.worldToLocal(h.point.clone()); if(inDomain(q.x,q.y)){sel={u:q.x,v:q.y};updatePoint();}}
+}
+el.addEventListener('pointerdown',e=>{
+  drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY};el.setPointerCapture(e.pointerId);
+  dragPt=onMarker(e); view.style.cursor=dragPt?'crosshair':'grabbing';
+});
 el.addEventListener('pointermove',e=>{
-  if(!drag)return;
+  if(!drag){view.style.cursor=onMarker(e)?'pointer':'grab';return;}
+  if(dragPt){movePoint(e);return;}
   th-=(e.clientX-drag.x)*.008; ph=Math.min(Math.max(ph-(e.clientY-drag.y)*.008,.1),Math.PI-.1);
   drag.x=e.clientX; drag.y=e.clientY; placeCam();
 });
@@ -238,7 +258,7 @@ el.addEventListener('pointerup',e=>{
     const h=ray.intersectObject(mesh)[0];
     if(h){const q=G.worldToLocal(h.point.clone()); if(inDomain(q.x,q.y)){sel={u:q.x,v:q.y};updatePoint();}}
   }
-  drag=null;
+  drag=null; dragPt=false;
 });
 el.addEventListener('wheel',e=>{e.preventDefault();rad=Math.min(Math.max(rad*(1+e.deltaY*.001),3),20);placeCam();},{passive:false});
 let pinch=0;
