@@ -39,19 +39,11 @@ td:first-child{color:var(--mute);width:38%}
 <body>
 <header>
   <h1>洋芋片的曲面幾何</h1>
-  <p class="sub">用參數曲面、法向量、切平面與曲率，描述一片疊得整整齊齊的洋芋片</p>
 </header>
-
-<!-- 第一區：製作動機 -->
-<section id="motivation">
-  <h2>一、製作動機</h2>
-  <p>吃洋芋片時我發現，這種洋芋片不是平的：一個方向向上彎，垂直的另一個方向卻向下彎，像一個馬鞍。我好奇這個形狀為什麼能成立，也想知道它能不能用課堂上的曲面幾何描述。</p>
-  <p>這種形狀有實際用途。向兩個相反方向彎曲的薄片比平板更硬、不容易折斷，而且每一片的形狀完全相同，可以整齊地疊進筒子裡。這個作業用簡化的<b>雙曲拋物面（馬鞍面）</b>建立洋芋片模型，並用互動方式觀察它在各點的幾何性質。真實洋芋片的形狀當然更複雜，這裡只做合理的近似。</p>
-</section>
 
 <!-- 第二、三、五區：3D 模型 + 參數控制 + 點選展示 -->
 <section id="lab">
-  <h2>二、洋芋片 3D 模型、參數控制與點選展示</h2>
+  <h2>一、洋芋片 3D 模型、參數控制與點選展示</h2>
   <div class="grid">
     <div>
       <div id="view"><div class="hint">拖曳空白處旋轉　拖曳黑點移動 P　點選表面直接選點　滾輪縮放</div></div>
@@ -59,17 +51,21 @@ td:first-child{color:var(--mute);width:38%}
     </div>
     <div class="card">
       <h3>參數控制</h3>
-      <label>X 方向彎曲 kx（向上彎）<b id="vkx"></b><input id="kx" type="range" min="0" max="0.6" step="0.01" value="0.25"></label>
-      <label>Y 方向彎曲 ky（向下彎）<b id="vky"></b><input id="ky" type="range" min="0" max="0.6" step="0.01" value="0.25"></label>
-      <label>洋芋片長度 L（x 方向）<b id="vL"></b><input id="L" type="range" min="2" max="6" step="0.1" value="4"></label>
-      <label>洋芋片寬度 W（y 方向）<b id="vW"></b><input id="W" type="range" min="1.5" max="5" step="0.1" value="3"></label>
+      <label>曲面模型
+        <select id="model"><option value="saddle">馬鞍面（洋芋片）</option><option value="sphere">圓球</option></select>
+      </label>
+      <label class="sad">X 方向彎曲 kx（向上彎）<b id="vkx"></b><input id="kx" type="range" min="0" max="0.6" step="0.01" value="0.25"></label>
+      <label class="sad">Y 方向彎曲 ky（向下彎）<b id="vky"></b><input id="ky" type="range" min="0" max="0.6" step="0.01" value="0.25"></label>
+      <label class="sph" style="display:none">球半徑 R（K = 1/R²）<b id="vRs"></b><input id="Rs" type="range" min="1.5" max="4" step="0.1" value="2.5"></label>
+      <label class="sad">洋芋片長度 L（x 方向）<b id="vL"></b><input id="L" type="range" min="2" max="6" step="0.1" value="4"></label>
+      <label class="sad">洋芋片寬度 W（y 方向）<b id="vW"></b><input id="W" type="range" min="1.5" max="5" step="0.1" value="3"></label>
       <label>表面著色
         <select id="cmode"><option value="K">高斯曲率 K</option><option value="none">不著色（金黃色）</option></select>
       </label>
       <h3 style="margin-top:16px">選取點 P 的位置</h3>
       <p class="sub" style="font:13px/1.5 sans-serif">可在曲面上拖曳黑點，或用下面的滑桿微調 (u, v)</p>
-      <label>u<b id="vpu"></b><input id="pu" type="range" step="any"></label>
-      <label>v<b id="vpv"></b><input id="pv" type="range" step="any"></label>
+      <label><span id="lpu">u</span><b id="vpu"></b><input id="pu" type="range" step="any"></label>
+      <label><span id="lpv">v</span><b id="vpv"></b><input id="pv" type="range" step="any"></label>
       <button id="pCenter" type="button" style="margin-top:12px;width:100%;padding:8px;border:1px solid var(--gold);background:#fff0bd;border-radius:6px;font:14px sans-serif;cursor:pointer">P 回到中心 (0, 0)</button>
       <p style="margin:12px 0 0;font:14px sans-serif">
         <span class="chk"><input type="checkbox" id="sN" checked> 法向量</span>
@@ -82,7 +78,7 @@ td:first-child{color:var(--mute);width:38%}
 
 <!-- 第四區：幾何資訊 -->
 <section id="info">
-  <h2>三、幾何資訊</h2>
+  <h2>二、幾何資訊</h2>
   <div class="grid">
     <div class="card">
       <h3>目前使用的參數曲面</h3>
@@ -94,7 +90,7 @@ td:first-child{color:var(--mute);width:38%}
     <div class="card">
       <h3>選取點 P 的幾何資訊</h3>
       <table>
-        <tr><td>參數 (u, v)</td><td id="iUV" class="mono"></td></tr>
+        <tr><td id="lUV">參數 (u, v)</td><td id="iUV" class="mono"></td></tr>
         <tr><td>座標 P</td><td id="iP" class="mono"></td></tr>
         <tr><td>法向量 n</td><td id="iN" class="mono"></td></tr>
         <tr><td>高斯曲率 K</td><td id="iK" class="mono"></td></tr>
@@ -107,29 +103,36 @@ td:first-child{color:var(--mute);width:38%}
 
 <!-- 第六區：幾何解釋 -->
 <section id="explain">
-  <h2>四、幾何解釋</h2>
+  <h2>三、幾何解釋</h2>
   <div class="cols">
     <div class="card"><h3>參數曲面</h3><p>曲面可以想成把一張平面的「參數紙」(u, v) 彎進三維空間：每個 (u, v) 對應空間中一個點 r(u,v)。本作業取 r(u,v) = (u, v, kx·u² − ky·v²)，也就是把 (u,v) 平面上的點抬高到 z 高度。kx 控制沿 x 方向向上彎的程度，ky 控制沿 y 方向向下彎的程度。</p></div>
     <div class="card"><h3>法向量</h3><p>在曲面上沿 u、v 方向各走一小步，得到兩個切向量 r_u 與 r_v。它們的外積 r_u × r_v 垂直於曲面，標準化後就是單位法向量 n。這裡 r_u = (1,0,2kx·u)，r_v = (0,1,−2ky·v)，所以 n = (−2kx·u, 2ky·v, 1)/√(1+4kx²u²+4ky²v²)。法向量表示曲面在該點「朝向哪裡」。</p></div>
     <div class="card"><h3>切平面</h3><p>切平面是通過該點、並由 r_u 與 r_v 張成的平面，也是用平面對曲面做的最佳一階近似。把曲面放得很大看一個點，它會越來越像這個切平面。切平面與法向量互相垂直，所以選一個就決定了另一個。</p></div>
-    <div class="card"><h3>曲率</h3><p>曲率描述曲面離開切平面的速度。在一點取各個方向的切線，彎曲程度最大與最小的兩個值稱為主曲率 k₁、k₂。高斯曲率 K = k₁·k₂。洋芋片的 K 是負的，因為兩個主曲率一正一負，一個方向向上彎、另一個向下彎，這種點叫鞍點（雙曲點）。K 為正的點像碗或球面，K 為 0 的點像圓柱面或平面。</p></div>
+    <div class="card"><h3>曲率</h3><p>曲率描述曲面離開切平面的速度。在一點取各個方向的切線，彎曲程度最大與最小的兩個值稱為主曲率 k₁、k₂。高斯曲率 K = k₁·k₂。洋芋片的 K 是負的，因為兩個主曲率一正一負，一個方向向上彎、另一個向下彎，這種點叫鞍點（雙曲點）。K 為正的點像碗或球面，K 為 0 的點像圓柱面或平面。切換到「圓球」模型可以對照：像地球這樣的球面處處 K = 1/R² > 0（各方向都往同一側彎），洋芋片的 K 卻是負的（兩個方向往相反側彎）。球面用經緯度 (θ, φ) 當參數：r(θ,φ) = R·(cosφ·cosθ, cosφ·sinθ, sinφ)。</p></div>
   </div>
 </section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ===== 1. 數學核心：所有顯示的公式與數值都來自這裡 ===== */
-const P = {kx:.25, ky:.25, a:2, b:1.5};            // a=L/2, b=W/2
-const zf = (u,v)=>P.kx*u*u - P.ky*v*v;               // z(u,v)
-function geo(u,v){                                    // 曲面在 (u,v) 的幾何量
-  const zu=2*P.kx*u, zv=-2*P.ky*v, zuu=2*P.kx, zvv=-2*P.ky;
-  const w=1+zu*zu+zv*zv, s=Math.sqrt(w);
-  const K=(zuu*zvv)/(w*w);                            // z_uv = 0
-  const H=((1+zv*zv)*zuu+(1+zu*zu)*zvv)/(2*w*s);
+const P = {model:'saddle', kx:.25, ky:.25, R:2.5, a:2, b:1.5};            // a=L/2, b=W/2
+function geo(u,v){                                    // 曲面在參數 (u,v) 的點、法向量、切向量與曲率
+  if(P.model==='sphere'){                             // u=經度θ, v=緯度φ：r = R(cosφcosθ, cosφsinθ, sinφ)
+    const cp=Math.cos(v),sp=Math.sin(v),ct=Math.cos(u),st=Math.sin(u),R=P.R, n=[cp*ct,cp*st,sp];
+    return {pos:[R*n[0],R*n[1],R*n[2]],n,e1:[-st,ct,0],K:1/(R*R),H:1/R,k1:1/R,k2:1/R};
+  }
+  const zu=2*P.kx*u, zv=-2*P.ky*v, zuu=2*P.kx, zvv=-2*P.ky;   // z = kx·u² − ky·v²，z_uv = 0
+  const w=1+zu*zu+zv*zv, s=Math.sqrt(w), e=Math.hypot(1,zu);
+  const K=(zuu*zvv)/(w*w);
+  const H=((1+zv*zv)*zuu+(1+zu*zu)*zvv)/(2*w*s);       // 僅用於求主曲率
   const d=Math.sqrt(Math.max(H*H-K,0));
-  return {zu,zv,K,H,k1:H+d,k2:H-d,n:[-zu/s,-zv/s,1/s]};
+  return {pos:[u,v,P.kx*u*u-P.ky*v*v],n:[-zu/s,-zv/s,1/s],e1:[1/e,0,zu/e],K,H,k1:H+d,k2:H-d};
 }
 const inDomain=(u,v)=>(u/P.a)**2+(v/P.b)**2<=1;
+function fromPoint(q){                                // 3D 點 → 參數 (u,v)
+  if(P.model==='sphere')return {u:Math.atan2(q.y,q.x),v:Math.asin(Math.max(-1,Math.min(1,q.z/q.length())))};
+  return inDomain(q.x,q.y)?{u:q.x,v:q.y}:null;
+}
 
 /* ===== 2. Three.js 場景（群組 G 旋轉 -90° 使數學 z 軸朝上） ===== */
 const view=document.getElementById('view');
@@ -168,18 +171,24 @@ let sel={u:.9,v:.5};
 function rebuild(){
   const mode=document.getElementById('cmode').value, vals=new Float32Array(nV);
   let mx=1e-9;
+  const sph=P.model==='sphere';
   for(let i=0;i<=N;i++)for(let j=0;j<=N;j++){
-    const p=-1+2*i/N, q=-1+2*j/N;                     // 正方形 → 橢圓
-    const x=p*Math.sqrt(1-q*q/2), y=q*Math.sqrt(1-p*p/2);
-    const u=P.a*x, v=P.b*y, k=i*(N+1)+j, g=geo(u,v);
-    pos.set([u,v,zf(u,v)],k*3);
+    const k=i*(N+1)+j; let u,v;
+    if(sph){u=-Math.PI+2*Math.PI*i/N; v=-Math.PI/2+Math.PI*j/N;}   // 經度、緯度網格
+    else{
+      const p=-1+2*i/N, q=-1+2*j/N;                   // 正方形 → 橢圓
+      u=P.a*p*Math.sqrt(1-q*q/2); v=P.b*q*Math.sqrt(1-p*p/2);
+    }
+    const g=geo(u,v); pos.set(g.pos,k*3);
     vals[k]=mode==='K'?g.K:0; mx=Math.max(mx,Math.abs(vals[k]));
   }
   for(let k=0;k<nV;k++){
     const c=mode==='none'?[.91,.69,.18]:ramp(vals[k]/mx); col.set(c,k*3);
   }
   geom.attributes.position.needsUpdate=geom.attributes.color.needsUpdate=true;
-  geom.computeVertexNormals(); geom.computeBoundingSphere();
+  geom.computeVertexNormals();
+  if(sph){const nr=geom.attributes.normal;for(let k=0;k<nV;k++)nr.setXYZ(k,pos[3*k]/P.R,pos[3*k+1]/P.R,pos[3*k+2]/P.R);nr.needsUpdate=true;}  // 球面法向量=徑向
+  geom.computeBoundingSphere();
   const lg=(t)=>mode==='none'?'':t;
   document.getElementById('lgL').textContent=lg('K＝'+(-mx).toFixed(2));
   document.getElementById('lgR').textContent=lg('K＝'+mx.toFixed(2));
@@ -189,44 +198,59 @@ function rebuild(){
 /* ===== 4. 選取點：標記、法向量、切平面、資訊面板 ===== */
 const f=(x,d=3)=>(x<0?'−':'')+Math.abs(x).toFixed(d);
 function updatePoint(){
-  // 參數改變後若點跑到定義域外，就拉回邊界內
-  const r=Math.hypot(sel.u/P.a,sel.v/P.b); if(r>.98){sel.u/=r/.98;sel.v/=r/.98;}
-  const {u,v}=sel, z=zf(u,v), g=geo(u,v), n=new THREE.Vector3(...g.n);
-  const pt=new THREE.Vector3(u,v,z);
+  const sph=P.model==='sphere', deg=x=>x*180/Math.PI;
+  if(!sph){const r=Math.hypot(sel.u/P.a,sel.v/P.b); if(r>.98){sel.u/=r/.98;sel.v/=r/.98;}}   // 拉回定義域內
+  const {u,v}=sel, g=geo(u,v), n=new THREE.Vector3(...g.n), pt=new THREE.Vector3(...g.pos);
   marker.position.copy(pt);
   arrow.position.copy(pt); arrow.setDirection(n);
-  const e1=new THREE.Vector3(1,0,g.zu).normalize(), e2=new THREE.Vector3().crossVectors(n,e1), s=.9, c=[[-1,-1],[1,-1],[1,1],[-1,1]];
+  const e1=new THREE.Vector3(...g.e1), e2=new THREE.Vector3().crossVectors(n,e1), s=.9, c=[[-1,-1],[1,-1],[1,1],[-1,1]];
   c.forEach(([a,b],k)=>{const q=pt.clone().addScaledVector(e1,a*s).addScaledVector(e2,b*s); tpGeo.attributes.position.setXYZ(k,q.x,q.y,q.z);});
   tpGeo.attributes.position.needsUpdate=true; tpGeo.computeBoundingSphere();
   arrow.visible=sN.checked; tp.visible=sT.checked; wire.visible=sW.checked;
 
-  pu.min=-.97*P.a; pu.max=.97*P.a; pu.value=u; pv.min=-.97*P.b; pv.max=.97*P.b; pv.value=v;
-  vpu.textContent=f(u,2); vpv.textContent=f(v,2);
+  if(sph){pu.min=-Math.PI; pu.max=Math.PI; pv.min=-Math.PI/2; pv.max=Math.PI/2;}
+  else{pu.min=-.97*P.a; pu.max=.97*P.a; pv.min=-.97*P.b; pv.max=.97*P.b;}
+  pu.value=u; pv.value=v;
+  vpu.textContent=sph?f(deg(u),1)+'°':f(u,2); vpv.textContent=sph?f(deg(v),1)+'°':f(v,2);
+  lpu.textContent=sph?'經度 θ':'u'; lpv.textContent=sph?'緯度 φ':'v'; lUV.textContent=sph?'經緯度 (θ, φ)':'參數 (u, v)';
   const set=(id,t)=>document.getElementById(id).textContent=t;
-  set('iUV',`(${f(u,2)}, ${f(v,2)})`);
-  set('iP',`(${f(u,2)}, ${f(v,2)}, ${f(z,2)})`);
+  set('iUV',sph?`(${f(deg(u),1)}°, ${f(deg(v),1)}°)`:`(${f(u,2)}, ${f(v,2)})`);
+  set('iP',`(${f(g.pos[0],2)}, ${f(g.pos[1],2)}, ${f(g.pos[2],2)})`);
   set('iN',`(${f(g.n[0])}, ${f(g.n[1])}, ${f(g.n[2])})`);
   set('iK',f(g.K,4)); set('iPr',`${f(g.k1,3)}, ${f(g.k2,3)}`);
-  const t=Math.abs(g.K)<1e-6?'拋物點／平坦（K≈0）':g.K<0?'鞍點（K<0，雙曲點）':'橢圓點（K>0）';
+  const t=sph?'臍點（K>0，各方向彎曲程度相同 k₁=k₂）':Math.abs(g.K)<1e-6?'拋物點／平坦（K≈0）':g.K<0?'鞍點（K<0，雙曲點）':'橢圓點（K>0）';
   document.getElementById('iType').innerHTML='<span class="tag">'+t+'</span>';
 }
 function updateText(){
   const k=(x)=>x.toFixed(2);
-  eqR.textContent=`r(u,v) = ( u, v, ${k(P.kx)}·u² − ${k(P.ky)}·v² )`;
-  eqZ.textContent=`z = kx·u² − ky·v²，kx=${k(P.kx)}，ky=${k(P.ky)}`;
-  eqDom.textContent=`定義域：(u/${k(P.a)})² + (v/${k(P.b)})² ≤ 1　（a=L/2，b=W/2）`;
-  eqK.textContent=`K = −4·kx·ky / (1+4kx²u²+4ky²v²)²，主曲率 k₁、k₂ 滿足 k₁·k₂ = K`;
+  if(P.model==='sphere'){
+    eqR.textContent=`r(θ,φ) = ( R·cosφ·cosθ, R·cosφ·sinθ, R·sinφ )，R=${k(P.R)}`;
+    eqZ.textContent=`球面：x² + y² + z² = R²（θ 為經度，φ 為緯度，法向量取向外）`;
+    eqDom.textContent=`定義域：−180° ≤ θ ≤ 180°，−90° ≤ φ ≤ 90°`;
+    eqK.textContent=`K = 1/R² = ${(1/P.R/P.R).toFixed(4)}（處處相同，且 k₁ = k₂ = 1/R）`;
+  }else{
+    eqR.textContent=`r(u,v) = ( u, v, ${k(P.kx)}·u² − ${k(P.ky)}·v² )`;
+    eqZ.textContent=`z = kx·u² − ky·v²，kx=${k(P.kx)}，ky=${k(P.ky)}`;
+    eqDom.textContent=`定義域：(u/${k(P.a)})² + (v/${k(P.b)})² ≤ 1　（a=L/2，b=W/2）`;
+    eqK.textContent=`K = −4·kx·ky / (1+4kx²u²+4ky²v²)²，主曲率 k₁、k₂ 滿足 k₁·k₂ = K`;
+  }
 }
+let lastModel='saddle';
 function onParams(){
-  P.kx=+kx.value; P.ky=+ky.value; P.a=+L.value/2; P.b=+W.value/2;
+  P.model=model.value; P.kx=+kx.value; P.ky=+ky.value; P.R=+Rs.value; P.a=+L.value/2; P.b=+W.value/2;
+  const sph=P.model==='sphere';
+  if(P.model!==lastModel){lastModel=P.model; sel=sph?{u:.6,v:.4}:{u:.9,v:.5};}   // 切換模型時重設 P
+  document.querySelectorAll('.sad').forEach(e=>e.style.display=sph?'none':'');
+  document.querySelectorAll('.sph').forEach(e=>e.style.display=sph?'':'none');
+  vRs.textContent=Rs.value;
   vkx.textContent=kx.value; vky.textContent=ky.value; vL.textContent=L.value; vW.textContent=W.value;
   rebuild(); updateText(); updatePoint();
 }
-['kx','ky','L','W','cmode'].forEach(id=>document.getElementById(id).addEventListener('input',onParams));
+['model','kx','ky','Rs','L','W','cmode'].forEach(id=>document.getElementById(id).addEventListener('input',onParams));
 document.getElementById('pCenter').addEventListener('click',()=>{sel={u:0,v:0};updatePoint();});
 const clampTo=(x,l)=>Math.min(Math.max(x,-l),l);
-pu.addEventListener('input',()=>{sel.u=+pu.value;sel.v=clampTo(sel.v,P.b*Math.sqrt(Math.max(0,.94-(sel.u/P.a)**2)));updatePoint();});
-pv.addEventListener('input',()=>{sel.v=+pv.value;sel.u=clampTo(sel.u,P.a*Math.sqrt(Math.max(0,.94-(sel.v/P.b)**2)));updatePoint();});
+pu.addEventListener('input',()=>{sel.u=+pu.value;if(P.model!=='sphere')sel.v=clampTo(sel.v,P.b*Math.sqrt(Math.max(0,.94-(sel.u/P.a)**2)));updatePoint();});
+pv.addEventListener('input',()=>{sel.v=+pv.value;if(P.model!=='sphere')sel.u=clampTo(sel.u,P.a*Math.sqrt(Math.max(0,.94-(sel.v/P.b)**2)));updatePoint();});
 ['sN','sT','sW'].forEach(id=>document.getElementById(id).addEventListener('change',updatePoint));
 
 /* ===== 5. 自製軌道控制：旋轉、縮放、點選（Raycaster） ===== */
@@ -239,7 +263,7 @@ function setRay(e){const r=el.getBoundingClientRect();ray.setFromCamera(new THRE
 function onMarker(e){setRay(e);return ray.intersectObject(marker).length>0;}
 function movePoint(e){                                 // 讓 P 沿曲面跟著滑鼠移動
   setRay(e);const h=ray.intersectObject(mesh)[0];
-  if(h){const q=G.worldToLocal(h.point.clone()); if(inDomain(q.x,q.y)){sel={u:q.x,v:q.y};updatePoint();}}
+  if(h){const q=G.worldToLocal(h.point.clone()); const s2=fromPoint(q); if(s2){sel=s2;updatePoint();}}
 }
 el.addEventListener('pointerdown',e=>{
   drag={x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY};el.setPointerCapture(e.pointerId);
@@ -257,7 +281,7 @@ el.addEventListener('pointerup',e=>{
     const r=el.getBoundingClientRect();
     ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),camera);
     const h=ray.intersectObject(mesh)[0];
-    if(h){const q=G.worldToLocal(h.point.clone()); if(inDomain(q.x,q.y)){sel={u:q.x,v:q.y};updatePoint();}}
+    if(h){const q=G.worldToLocal(h.point.clone()); const s2=fromPoint(q); if(s2){sel=s2;updatePoint();}}
   }
   drag=null; dragPt=false;
 });
