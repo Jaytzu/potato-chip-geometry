@@ -64,12 +64,13 @@ td:first-child{color:var(--mute);width:38%}
       <label>洋芋片長度 L（x 方向）<b id="vL"></b><input id="L" type="range" min="2" max="6" step="0.1" value="4"></label>
       <label>洋芋片寬度 W（y 方向）<b id="vW"></b><input id="W" type="range" min="1.5" max="5" step="0.1" value="3"></label>
       <label>表面著色
-        <select id="cmode"><option value="K">高斯曲率 K</option><option value="H">平均曲率 H</option><option value="none">不著色（金黃色）</option></select>
+        <select id="cmode"><option value="K">高斯曲率 K</option><option value="none">不著色（金黃色）</option></select>
       </label>
       <h3 style="margin-top:16px">選取點 P 的位置</h3>
       <p class="sub" style="font:13px/1.5 sans-serif">可在曲面上拖曳黑點，或用下面的滑桿微調 (u, v)</p>
       <label>u<b id="vpu"></b><input id="pu" type="range" step="any"></label>
       <label>v<b id="vpv"></b><input id="pv" type="range" step="any"></label>
+      <button id="pCenter" type="button" style="margin-top:12px;width:100%;padding:8px;border:1px solid var(--gold);background:#fff0bd;border-radius:6px;font:14px sans-serif;cursor:pointer">P 回到中心 (0, 0)</button>
       <p style="margin:12px 0 0;font:14px sans-serif">
         <span class="chk"><input type="checkbox" id="sN" checked> 法向量</span>
         <span class="chk"><input type="checkbox" id="sT" checked> 切平面</span>
@@ -97,7 +98,6 @@ td:first-child{color:var(--mute);width:38%}
         <tr><td>座標 P</td><td id="iP" class="mono"></td></tr>
         <tr><td>法向量 n</td><td id="iN" class="mono"></td></tr>
         <tr><td>高斯曲率 K</td><td id="iK" class="mono"></td></tr>
-        <tr><td>平均曲率 H</td><td id="iH" class="mono"></td></tr>
         <tr><td>主曲率 k₁, k₂</td><td id="iPr" class="mono"></td></tr>
         <tr><td>點的類型</td><td id="iType"></td></tr>
       </table>
@@ -112,7 +112,7 @@ td:first-child{color:var(--mute);width:38%}
     <div class="card"><h3>參數曲面</h3><p>曲面可以想成把一張平面的「參數紙」(u, v) 彎進三維空間：每個 (u, v) 對應空間中一個點 r(u,v)。本作業取 r(u,v) = (u, v, kx·u² − ky·v²)，也就是把 (u,v) 平面上的點抬高到 z 高度。kx 控制沿 x 方向向上彎的程度，ky 控制沿 y 方向向下彎的程度。</p></div>
     <div class="card"><h3>法向量</h3><p>在曲面上沿 u、v 方向各走一小步，得到兩個切向量 r_u 與 r_v。它們的外積 r_u × r_v 垂直於曲面，標準化後就是單位法向量 n。這裡 r_u = (1,0,2kx·u)，r_v = (0,1,−2ky·v)，所以 n = (−2kx·u, 2ky·v, 1)/√(1+4kx²u²+4ky²v²)。法向量表示曲面在該點「朝向哪裡」。</p></div>
     <div class="card"><h3>切平面</h3><p>切平面是通過該點、並由 r_u 與 r_v 張成的平面，也是用平面對曲面做的最佳一階近似。把曲面放得很大看一個點，它會越來越像這個切平面。切平面與法向量互相垂直，所以選一個就決定了另一個。</p></div>
-    <div class="card"><h3>曲率</h3><p>曲率描述曲面離開切平面的速度。在一點取各個方向的切線，彎曲程度最大與最小的兩個值稱為主曲率 k₁、k₂。高斯曲率 K = k₁·k₂，平均曲率 H = (k₁+k₂)/2。洋芋片的 K 是負的，因為兩個主曲率一正一負，一個方向向上彎、另一個向下彎，這種點叫鞍點（雙曲點）。K 為正的點像碗或球面，K 為 0 的點像圓柱面或平面。</p></div>
+    <div class="card"><h3>曲率</h3><p>曲率描述曲面離開切平面的速度。在一點取各個方向的切線，彎曲程度最大與最小的兩個值稱為主曲率 k₁、k₂。高斯曲率 K = k₁·k₂。洋芋片的 K 是負的，因為兩個主曲率一正一負，一個方向向上彎、另一個向下彎，這種點叫鞍點（雙曲點）。K 為正的點像碗或球面，K 為 0 的點像圓柱面或平面。</p></div>
   </div>
 </section>
 
@@ -173,7 +173,7 @@ function rebuild(){
     const x=p*Math.sqrt(1-q*q/2), y=q*Math.sqrt(1-p*p/2);
     const u=P.a*x, v=P.b*y, k=i*(N+1)+j, g=geo(u,v);
     pos.set([u,v,zf(u,v)],k*3);
-    vals[k]=mode==='K'?g.K:mode==='H'?g.H:0; mx=Math.max(mx,Math.abs(vals[k]));
+    vals[k]=mode==='K'?g.K:0; mx=Math.max(mx,Math.abs(vals[k]));
   }
   for(let k=0;k<nV;k++){
     const c=mode==='none'?[.91,.69,.18]:ramp(vals[k]/mx); col.set(c,k*3);
@@ -181,8 +181,8 @@ function rebuild(){
   geom.attributes.position.needsUpdate=geom.attributes.color.needsUpdate=true;
   geom.computeVertexNormals(); geom.computeBoundingSphere();
   const lg=(t)=>mode==='none'?'':t;
-  document.getElementById('lgL').textContent=lg(mode==='K'?'K＝'+(-mx).toFixed(2):'H＝'+(-mx).toFixed(2));
-  document.getElementById('lgR').textContent=lg((mode==='K'?'K＝':'H＝')+mx.toFixed(2));
+  document.getElementById('lgL').textContent=lg('K＝'+(-mx).toFixed(2));
+  document.getElementById('lgR').textContent=lg('K＝'+mx.toFixed(2));
   document.querySelector('.legend').style.visibility=mode==='none'?'hidden':'visible';
 }
 
@@ -206,7 +206,7 @@ function updatePoint(){
   set('iUV',`(${f(u,2)}, ${f(v,2)})`);
   set('iP',`(${f(u,2)}, ${f(v,2)}, ${f(z,2)})`);
   set('iN',`(${f(g.n[0])}, ${f(g.n[1])}, ${f(g.n[2])})`);
-  set('iK',f(g.K,4)); set('iH',f(g.H,4)); set('iPr',`${f(g.k1,3)}, ${f(g.k2,3)}`);
+  set('iK',f(g.K,4)); set('iPr',`${f(g.k1,3)}, ${f(g.k2,3)}`);
   const t=Math.abs(g.K)<1e-6?'拋物點／平坦（K≈0）':g.K<0?'鞍點（K<0，雙曲點）':'橢圓點（K>0）';
   document.getElementById('iType').innerHTML='<span class="tag">'+t+'</span>';
 }
@@ -215,7 +215,7 @@ function updateText(){
   eqR.textContent=`r(u,v) = ( u, v, ${k(P.kx)}·u² − ${k(P.ky)}·v² )`;
   eqZ.textContent=`z = kx·u² − ky·v²，kx=${k(P.kx)}，ky=${k(P.ky)}`;
   eqDom.textContent=`定義域：(u/${k(P.a)})² + (v/${k(P.b)})² ≤ 1　（a=L/2，b=W/2）`;
-  eqK.textContent=`K = −4·kx·ky / (1+4kx²u²+4ky²v²)²，H = [(1+z_v²)z_uu + (1+z_u²)z_vv] / (2(1+z_u²+z_v²)^{3/2})`;
+  eqK.textContent=`K = −4·kx·ky / (1+4kx²u²+4ky²v²)²，主曲率 k₁、k₂ 滿足 k₁·k₂ = K`;
 }
 function onParams(){
   P.kx=+kx.value; P.ky=+ky.value; P.a=+L.value/2; P.b=+W.value/2;
@@ -223,6 +223,7 @@ function onParams(){
   rebuild(); updateText(); updatePoint();
 }
 ['kx','ky','L','W','cmode'].forEach(id=>document.getElementById(id).addEventListener('input',onParams));
+document.getElementById('pCenter').addEventListener('click',()=>{sel={u:0,v:0};updatePoint();});
 const clampTo=(x,l)=>Math.min(Math.max(x,-l),l);
 pu.addEventListener('input',()=>{sel.u=+pu.value;sel.v=clampTo(sel.v,P.b*Math.sqrt(Math.max(0,.94-(sel.u/P.a)**2)));updatePoint();});
 pv.addEventListener('input',()=>{sel.v=+pv.value;sel.u=clampTo(sel.u,P.a*Math.sqrt(Math.max(0,.94-(sel.v/P.b)**2)));updatePoint();});
